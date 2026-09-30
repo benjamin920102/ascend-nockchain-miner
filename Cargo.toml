@@ -1,0 +1,25 @@
+[package]
+name = "ascend-nockchain-miner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "build.rs"
+
+[[bin]]
+name = "ascend-nockchain-miner"
+path = "src/main.rs"
+
+[features]
+default = ["stub", "node"]
+stub = []
+cann = []
+node = ["ai-pow-miner/node", "dep:tokio", "dep:tokio-util"]
+
+[dependencies]
+ai-pow = { git = "https://github.com/nockchain/nockchain.git", branch = "master", package = "ai-pow" }
+ai-pow-miner = { git = "https://github.com/nockchain/nockchain.git", branch = "master", package = "ai-pow-miner" }
+anyhow = "1.0"
+clap = { version = "4.4.4", features = ["derive"] }
+tokio = { version = "1", optional = true, features = ["rt-multi-thread", "macros", "signal"] }
+tokio-util = { version = "0.7", optional = true }
+tracing = "0.1"

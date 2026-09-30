@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+set(CMAKE_ASC_ARCHITECTURES "dav-2201" CACHE STRING "Ascend architecture")
+find_package(ASC REQUIRED)
+project(ascend_miner LANGUAGES ASC CXX)
+add_library(ascend_miner SHARED miner.asc)
+target_link_libraries(ascend_miner PRIVATE tiling_api register platform m dl pthread)
+target_compile_options(ascend_miner PRIVATE $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=${CMAKE_ASC_ARCHITECTURES}>)
