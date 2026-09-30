@@ -1,0 +1,45 @@
+name: prerelease
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ascend-prerelease
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y build-essential clang libclang-dev protobuf-compiler
+      - run: make test
+
+  build:
+    needs: test
+    runs-on: [self-hosted, linux, ARM64, ascend910b]
+    steps:
+      - uses: actions/checkout@v4
+      - run: make release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ascend910b
+          path: dist/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ascend910b
+          path: dist
+      - name: Create prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="prerelease-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Ascend 910B prerelease ${GITHUB_RUN_NUMBER}" --generate-notes --prerelease --latest=false
